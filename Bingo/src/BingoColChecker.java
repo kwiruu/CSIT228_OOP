@@ -1,13 +1,13 @@
-public class BingoRowChecker extends BingoChecker {
-    int row;
-    public BingoRowChecker(BingoCard card, int row) {
+public class BingoColChecker extends BingoChecker {
+    int col;
+    public BingoColChecker(BingoCard card, int row) {
         super(card);
-        this.row = row-1;
+        this.col = col-1;
     }
 
     @Override
     public void run() {
-        for(int col=0; col < 5; col++){
+        for(int row=0; row < 5; row++){
             int num = card.nums[row][col];
             while(!BingoGame.result[num]){
                 try {
@@ -19,8 +19,6 @@ public class BingoRowChecker extends BingoChecker {
                 }
             }
         }
-        System.out.println();
-        System.out.println("Card " + card.id + " done: " + card);
-        System.out.println();
+        System.out.println("Card + " + card.id + " done: " + card);
     }
 }

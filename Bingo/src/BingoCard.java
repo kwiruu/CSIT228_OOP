@@ -1,73 +1,59 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 public class BingoCard {
-    List<Integer> numbers;
     int[][] nums;
     int id;
 
+
     public BingoCard(int id) {
         this.id = id;
-        this.numbers = generateRandomNumbers();
-        this.nums = new int[5][5];
-        fillNumsArray();
-    }
+        nums = new int[5][5];
 
-    private List<Integer> generateRandomNumbers() {
-        List<Integer> cardNumbers = new ArrayList<>();
 
-        // Generate random numbers for B: 01-15
-        for (int i = 1; i <= 5; i++) {
-            cardNumbers.add(randomInRange(1, 15));
-        }
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                int randomValue = 0;
+                Random random = new Random();
 
-        // Generate random numbers for I: 16-30
-        for (int i = 1; i <= 5; i++) {
-            cardNumbers.add(randomInRange(16, 30));
-        }
+                do {
+                    if (j == 0) {
+                        randomValue = random.nextInt(15)+1;
+                    } else if (j == 1) {
+                        randomValue = random.nextInt(15)+16;
+                    } else if (j == 2 && i != 2) {
+                        randomValue = random.nextInt(15)+32;
+                    } else if (j == 3) {
+                        randomValue = random.nextInt(15)+48;
+                    } else if(j==4){
+                        randomValue = random.nextInt(15)+64;
+                    }
+                } while (isParehow(randomValue, i, j));
 
-        // Generate random numbers for N: 31-45 (3rd element is 0)
-        for (int i = 1; i <= 4; i++) {
-            cardNumbers.add(randomInRange(31, 45));
-        }
-        cardNumbers.add(0); // 3rd element is 0
-
-        // Generate random numbers for G: 46-60
-        for (int i = 1; i <= 5; i++) {
-            cardNumbers.add(randomInRange(46, 60));
-        }
-
-        // Generate random numbers for O: 61-75
-        for (int i = 1; i <= 5; i++) {
-            cardNumbers.add(randomInRange(61, 75));
-        }
-
-        // Shuffle the list to randomize the order
-        Collections.shuffle(cardNumbers);
-
-        return cardNumbers;
-    }
-
-    private int randomInRange(int min, int max) {
-        Random random = new Random();
-        return random.nextInt(max - min + 1) + min;
-    }
-
-    private void fillNumsArray() {
-        for (int row = 0; row < 5; row++) {
-            for (int col = 0; col < 5; col++) {
-                nums[row][col] = numbers.get(row * 5 + col);
+                nums[i][j] = randomValue;
             }
         }
+
+    }
+
+    public boolean isParehow(int num, int upperbound, int col){
+        for(int i=0;i<upperbound;i++) {
+            if(nums[i][col] == num){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int randomRange(int min, int max) {
+        Random random = new Random();
+        return random.nextInt(max - min + 1) + min;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int row = 0; row < 5; row++) {
-            for (int col = 0; col < 5; col++) {
+        for(int row = 0; row < 5; row++){
+            for(int col = 0; col < 5; col++){
                 sb.append(nums[row][col]).append("\t");
             }
             sb.append("\n");

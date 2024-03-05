@@ -3,83 +3,84 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-public class BingoGame implements Runnable {
-    boolean bingo;
-    static boolean[] result;
-    List<BingoCard> cards;
+public class BingoGame implements Runnable{
 
-    public BingoGame() {
+    List<BingoCard> cards;
+    public static boolean[] result;
+    public static boolean bingoChecker;
+
+    int [] temp = new int[76];
+
+    public BingoGame(){
         result = new boolean[76];
-        result[0] = true; // Index 0 reserved for FREE
-        bingo = false;
+        result[0] = true;
+        bingoChecker = false;
         cards = new ArrayList<>();
     }
 
     @Override
-    public void run() {
+    public void run(){
+
         Scanner sc = new Scanner(System.in);
-
         System.out.print("How many players? ");
-        int numPlayers = sc.nextInt();
+        int cnt = sc.nextInt();
 
-        for(int i = 1; i<=numPlayers; i++){
-            cards.add(new BingoCard(i));
+        for(int i = 0; i < cnt; i++){
+            cards.add(new BingoCard(i+1));
         }
-        // TODO get a number and create that number of cards
-        // TODO and store them in the list of cards.
-        for (BingoCard card : cards) {
-            System.out.println("Card " + card.id);
+        for(BingoCard card: cards){
+            System.out.println("Card "+ card.id);
             System.out.println(card);
         }
-        List<Thread> threads = new ArrayList<>();
-        for (BingoCard card : cards) {
-            threads.add(new Thread(new BingoPatternPlus(card)));
-        }for (Thread t : threads) {
-            t.start();
+        ArrayList<Thread> thrd = new ArrayList<>();
+
+        for(BingoCard card: cards){
+            thrd.add(new Thread(new BingoRowChecker(card,3)));
         }
 
-        while(!bingo) {
-            Random random = new Random();
-            int num = random.nextInt(75) + 1;
+        for(Thread t: thrd){
+            t.start();
+        }
+        int rand = 0;
+        Random r = new Random();
+        int ctr = 0;
 
-            System.out.println("Number chosen: " + num);
-
-            System.out.println("Numbers chosen: ");
-            for (int i = 1; i < result.length; i++) {
-                if (result[i]) {
-                    System.out.print(i + " ");
-                }
+        while(!bingoChecker){
+            for(int i = 0; i < 76; i++){
+                do{
+                    rand = r.nextInt(75) + 1;
+                }while(isParehow(rand,i));
             }
+            temp[ctr] = rand;
             System.out.println();
+            System.out.println("Number List: ");
 
-            result[num] = true;
+            for(int i = 0; i < ctr; i++){
+                System.out.print(temp[i] + " ");
+            }
 
-            synchronized (this) {
-                notifyAll();
+            result[rand] = true;
+
+            synchronized (result){
+                result.notifyAll();
             }
 
             try {
                 Thread.sleep(300);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-
-
+            ctr++;
         }
-
-            System.out.println("Numbers chosen:");
-            for (int i = 1; i < result.length; i++) {
-                if (result[i]) {
-                    System.out.print(i + " ");
-                }
+    }
+    private boolean isParehow(int num, int upper){
+        boolean idk = false;
+        for(int i = 0; i < upper; i++){
+            if(num == temp[i]){
+                idk = true;
+                break;
             }
-            System.out.println();
-
-            for (Thread t : threads) {
-                t.interrupt();
-            }
-
-
-
+        }
+        return idk;
     }
 }
