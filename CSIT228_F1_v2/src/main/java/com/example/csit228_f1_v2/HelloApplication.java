@@ -20,13 +20,15 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
+
+        CreateTable.createuserTable();
+        CreateTable.createUserTable();
+
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setVgap(10);
@@ -100,15 +102,35 @@ public class HelloApplication extends Application {
                 String email = tfEmail.getText();
                 String password = pfPassword.getText();
 
-                try (Connection c = MySQLConnection.getConnection();
-                     PreparedStatement statement = c.prepareStatement("INSERT INTO tblaccounts(name, email,password) VALUES(?,?,?)")) {
+                try (Connection c = MySQLConnection.getConnection()) {
+                    // Insert user into tblaccounts
+                    String accountsQuery = "INSERT INTO tblaccounts(name, email, address) VALUES(?,?,?)";
+                    try (PreparedStatement accountsStatement = c.prepareStatement(accountsQuery, Statement.RETURN_GENERATED_KEYS)) {
+                        accountsStatement.setString(1, username);
+                        accountsStatement.setString(2, email);
+                        accountsStatement.setString(3,"");
+                        int accountsRowsInserted = accountsStatement.executeUpdate();
+                        System.out.println("Rows inserted into tblaccounts: " + accountsRowsInserted);
 
-                    statement.setString(1, username);
-                    statement.setString(2, email);
-                    statement.setString(3, password);
+                        // Retrieve the auto-generated ID from tblaccounts
+                        ResultSet generatedKeys = accountsStatement.getGeneratedKeys();
+                        int userId = -1;
+                        if (generatedKeys.next()) {
+                            userId = generatedKeys.getInt(1);
+                        } else {
+                            throw new SQLException("Failed to get generated user ID.");
+                        }
 
-                    int rowsInserted = statement.executeUpdate();
-                    System.out.println("Rows inserted: " + rowsInserted);
+                        // Insert user into tblusers
+                        String usersQuery = "INSERT INTO tblusers(username, password, id_fk) VALUES(?,?,?)";
+                        try (PreparedStatement usersStatement = c.prepareStatement(usersQuery)) {
+                            usersStatement.setString(1, username);
+                            usersStatement.setString(2, password);
+                            usersStatement.setInt(3, userId);
+                            int usersRowsInserted = usersStatement.executeUpdate();
+                            System.out.println("Rows inserted into tblusers: " + usersRowsInserted);
+                        }
+                    }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -116,6 +138,7 @@ public class HelloApplication extends Application {
                 System.out.println("Registration: Username - " + username + ", Email - " + email + ", Password - " + password);
             }
         });
+
 
         Scene scene = new Scene(grid, 700, 500, Color.BLACK);
         stage.setScene(scene);

@@ -37,14 +37,13 @@ public class HelloController {
 
         try(Connection c = MySQLConnection.getConnection();
             Statement statement = c.createStatement()){
-            String query = "SELECT * FROM tblaccounts";
+            String query = "SELECT * FROM tblusers";
             ResultSet res = statement.executeQuery(query);
 
             while(res.next()){
                 String passowrd =  res.getString("password");
-                String username = res.getString("name");
-                String email = res.getString(3);
-                System.out.println("PASSWORD: "+passowrd+"\nUSERNAME: "+username+"\nEMAIL: "+email+"\n");
+                String username = res.getString("username");
+                System.out.println("PASSWORD: "+passowrd+"\nUSERNAME: "+username);
                 if(username.equals(usernameF.getText()) && passowrd.equals(passwordF.getText())){
                     iscorrect = true;
                 }
@@ -55,7 +54,7 @@ public class HelloController {
 
         if(iscorrect){
             Parent homeview = FXMLLoader.load(HelloApplication.class
-                    .getResource("home-view.fxml"));
+                    .getResource("crud-view.fxml"));
             AnchorPane p = (AnchorPane) pnLogin.getParent();
             p.getChildren().remove(pnLogin);
             p.getChildren().add(homeview);
